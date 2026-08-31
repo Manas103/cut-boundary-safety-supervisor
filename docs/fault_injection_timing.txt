@@ -1,0 +1,19 @@
+dropout_60     kind=dropout  param_ms=   60 detected=True  hold_ms=0.407912
+dropout_90     kind=dropout  param_ms=   90 detected=True  hold_ms=0.595835
+dropout_150    kind=dropout  param_ms=  150 detected=True  hold_ms=0.546324
+dropout_300    kind=dropout  param_ms=  300 detected=True  hold_ms=0.628373
+stale_90       kind=stale    param_ms=   90 detected=True  hold_ms=0.0
+stale_120      kind=stale    param_ms=  120 detected=True  hold_ms=0.0
+stale_200      kind=stale    param_ms=  200 detected=True  hold_ms=0.0
+stale_500      kind=stale    param_ms=  500 detected=True  hold_ms=0.0
+latency_20     kind=latency  param_ms=   20 detected=True  hold_ms=0.0
+latency_30     kind=latency  param_ms=   30 detected=True  hold_ms=0.0
+latency_45     kind=latency  param_ms=   45 detected=True  hold_ms=0.0
+latency_60     kind=latency  param_ms=   60 detected=True  hold_ms=0.0
+
+cases: 12
+all faults detected: True
+hold times (ms): [0.407912, 0.595835, 0.546324, 0.628373, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+max hold_ms: 0.628373
+median hold_ms: 0.0
+all 12 under 20.0 ms: True

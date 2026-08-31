@@ -1,0 +1,24 @@
+# Resection-envelope boundary model, loaded independently by the supervisor
+# process at startup (include/boundary.hpp Boundary::load_from_file). This
+# file is the single human-editable source of the safe cutting volume; it is
+# never hardcoded in source so the envelope can be revised without a rebuild
+# (REQ-008).
+#
+# Each line:  FACE <face_id> <nx> <ny> <nz> <d>
+# defines one half-space "dot(normal, position) <= d" (safe/inside side).
+# A pose is inside the boundary (safe) only if it satisfies every FACE line.
+# Faces are evaluated in the order listed; the first one a pose violates is
+# reported as the breached face (REQ-004, REQ-010).
+#
+# Six axis-aligned faces approximate a box-shaped resection cavity in the
+# tool's planning frame, units mm: x in [0,100], y in [0,60], z in [0,40].
+# A seventh, non-axis-aligned face ("cut_plane") trims the far corner, to
+# demonstrate the half-space representation is not limited to a plain box
+# (see README "Boundary model").
+FACE x_min -1 0 0 0
+FACE x_max 1 0 0 100
+FACE y_min 0 -1 0 0
+FACE y_max 0 1 0 60
+FACE z_min 0 0 -1 0
+FACE z_max 0 0 1 40
+FACE cut_plane 0.5 0.5 0.5 80

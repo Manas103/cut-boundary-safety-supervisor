@@ -1,0 +1,39 @@
+ThreadSanitizer build (-fsanitize=thread -g -O1 -fno-omit-frame-pointer), WSL2 Ubuntu 22.04, g++ 11.4.0.
+Built with: cmake -S . -B build_tsan -DCMAKE_BUILD_TYPE=Debug -DENABLE_TSAN=ON && cmake --build build_tsan -j6
+
+Run with setarch -R (required under WSL2: TSan's shadow-memory layout
+conflicts with WSL2's default ASLR and aborts on startup with "FATAL:
+ThreadSanitizer: unexpected memory mapping" without it). All three
+processes (commander, supervisor, actuator) were run through
+setarch -R wrapper scripts so both the fault-monitor thread and the
+message-handling thread inside the real supervisor process, the only
+genuinely concurrent code in this repository, run under TSan, not just the
+single-threaded unit test binary.
+
+=== setarch -R ./build_tsan/cbs_tests (24 unit tests) ===
+[==========] 24 tests from 3 test suites ran. (4 ms total)
+[  PASSED  ] 24 tests.
+No TSan reports.
+
+=== setarch -R wrapped build_tsan/{commander,supervisor,actuator} through driver/run_boundary_violations.py ===
+violations vetoed with correct REQ-003 + face name: 40/40
+violations that leaked to the actuator's received-command log: 0
+safe poses: 10, accepted and forwarded to actuator: 10/10
+malformed line logged and process continued (REQ-019): True
+RESULT: PASS
+No TSan reports from the supervisor process (fault-monitor thread +
+message-handling thread sharing SupervisorCore and the decisions-log
+ofstream under one std::mutex, for the full 50-pose scenario).
+
+=== setarch -R wrapped build_tsan/{commander,supervisor,actuator} through driver/run_fault_injection.py (12 cases) ===
+all faults detected: True
+max hold_ms: 0.917503
+all 12 under 20.0 ms: True
+No TSan reports across any of the 12 fresh commander/supervisor/actuator
+process trios, including the 4 dropout cases where the fault-monitor thread
+races the (silent) message-handling thread by construction.
+
+Conclusion: clean. No ThreadSanitizer diagnostic was produced across the
+unit test binary or the two-thread supervisor process exercised through
+both end-to-end scenarios, including the dropout cases that most directly
+exercise the two threads' shared state.

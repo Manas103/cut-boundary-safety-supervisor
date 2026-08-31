@@ -1,0 +1,3 @@
+wrote docs/traceability_matrix.md -- 22 requirements, 1 untested, 0 untraced tests, from 4 trace file(s)
+untested: ['REQ-017']
+exit code: 1

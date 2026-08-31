@@ -1,0 +1,23 @@
+id,description,component
+REQ-001,"The supervisor shall execute as an operating-system process independent from the commander and actuator processes, communicating with each only via IPC (TCP loopback sockets), never via shared memory or direct function calls.",ProcessArchitecture
+REQ-002,"The supervisor shall hold its own in-process copy of the boundary model, loaded independently at its own startup from the boundary config file, and shall evaluate every commanded pose against that copy without querying the commander for a boundary decision.",SupervisorCore
+REQ-003,"The supervisor shall veto (withhold from forwarding) any commanded pose whose tool-tip position violates at least one half-space constraint of the convex resection boundary.",Boundary
+REQ-004,"On a boundary veto, the supervisor shall log the breached requirement ID (REQ-003) together with the specific half-space face name and the numeric margin of violation.",SupervisorCore
+REQ-005,"No commanded pose that the supervisor vetoes shall ever appear in the actuator's received-command log.",EndToEnd
+REQ-006,"The actuator shall append every command it actually receives, whether a forwarded pose or a hold command, to a persistent received-command log, in the order received.",Actuator
+REQ-007,"The convex-boundary containment check shall be implemented as a pure function of a pose and a boundary (no IPC, no global state) so it is directly unit-testable without running any process.",Boundary
+REQ-008,"The convex resection boundary shall be defined as an ordered list of half-space constraints (face name, outward normal, offset) loaded from a plaintext config file at supervisor startup, not hardcoded in source.",Boundary
+REQ-009,"A pose exactly on a half-space's boundary surface (dot(normal, position) == offset) shall be classified as inside/safe, per a documented inclusive convention, and this convention shall be covered by a dedicated boundary-value test.",Boundary
+REQ-010,"For each of the 40 injected boundary-violation scenarios, the supervisor's logged veto shall name the correct breached face, matching the specific half-space each scenario was constructed to violate.",EndToEnd
+REQ-011,"The supervisor shall detect tracker dropout (no pose message received for at least the configured dropout window) via a fault-monitor loop and command the actuator to a safe hold.",FaultMonitor
+REQ-012,"The supervisor shall detect a stale pose (a pose whose embedded capture timestamp is already older than the configured staleness threshold at arrival) and command the actuator to a safe hold instead of forwarding it.",SupervisorCore
+REQ-013,"The supervisor shall detect a latency spike (delivery age between the latency and staleness thresholds) and command the actuator to a safe hold instead of forwarding the affected pose.",SupervisorCore
+REQ-014,"For every detected fault (dropout, stale pose, latency spike), the supervisor shall issue the hold command to the actuator within 20 ms of the fault condition becoming detectable.",FaultMonitor
+REQ-015,"The actuator shall record a hold command using a message type distinct from a forwarded pose command, so the received-command log can be scanned for holds independently of forwards.",Actuator
+REQ-016,"The dropout fault-monitor loop shall run independently of the pose-message-handling path, so it can detect and act on a complete absence of incoming messages.",FaultMonitor
+REQ-017,"After a detected fault condition clears (a new, valid pose is subsequently received), the supervisor shall resume evaluating poses normally without requiring a process restart.",SupervisorCore
+REQ-018,"Commander-to-supervisor and supervisor-to-actuator messages shall use a newline-delimited framed protocol whose reader reassembles a complete message across arbitrarily split TCP reads, never acting on a partial message.",Protocol
+REQ-019,"The supervisor shall reject a malformed or protocol-violating message from the commander by logging it and continuing, not by crashing the process.",Protocol
+REQ-020,"The supervisor and the actuator shall each bind their listening socket to an OS-assigned ephemeral port (port 0) and hand that assigned port to the dependent process explicitly (via stdout captured by the driver), never a hardcoded port number.",Protocol
+REQ-021,"The requirements-traceability generator shall exit with a non-zero status if any requirement in requirements.csv has zero passing covering tests.",Traceability
+REQ-022,"The supervisor shall shut down cleanly on an explicit SHUTDOWN message forwarded from the commander, closing its actuator connection and its own listening socket before exiting, without needing to be killed externally.",Protocol

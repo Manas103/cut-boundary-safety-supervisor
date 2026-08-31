@@ -1,0 +1,13 @@
+== boundary violation end-to-end scenario ==
+scenario file: /home/manas/cbs-native/build/e2e_boundary/scenario_boundary.txt
+poses: 50 (40 violations, 10 safe), plus 1 malformed line
+actuator pid=1008 port=43915
+supervisor pid=1009 port=43865 (actuator-port=43915)
+commander pid=1011 (three distinct OS processes -- REQ-001)
+exit codes: commander=0 supervisor=0 actuator=0
+violations: 40
+violations vetoed with correct REQ-003 + face name: 40/40
+violations that leaked to the actuator's received-command log: 0
+safe poses: 10, accepted and forwarded to actuator: 10/10
+malformed line logged and process continued (REQ-019): True
+RESULT: PASS

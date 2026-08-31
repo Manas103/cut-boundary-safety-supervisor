@@ -1,0 +1,25 @@
+ASan+UBSan build (-fsanitize=address,undefined -g -O1 -fno-omit-frame-pointer), WSL2 Ubuntu 22.04, g++ 11.4.0.
+Built with: cmake -S . -B build_asan -DCMAKE_BUILD_TYPE=Debug -DENABLE_ASAN=ON && cmake --build build_asan -j6
+
+=== ./build_asan/cbs_tests (24 unit tests) ===
+[==========] 24 tests from 3 test suites ran. (3 ms total)
+[  PASSED  ] 24 tests.
+No ASan/UBSan reports.
+
+=== ./build_asan/{commander,supervisor,actuator} through driver/run_boundary_violations.py ===
+violations vetoed with correct REQ-003 + face name: 40/40
+violations that leaked to the actuator's received-command log: 0
+safe poses: 10, accepted and forwarded to actuator: 10/10
+malformed line logged and process continued (REQ-019): True
+RESULT: PASS
+No ASan/UBSan reports from any of the three sanitizer-built processes.
+
+=== ./build_asan/{commander,supervisor,actuator} through driver/run_fault_injection.py (12 cases) ===
+all faults detected: True
+max hold_ms: 0.864649
+all 12 under 20.0 ms: True
+No ASan/UBSan reports from any of the three sanitizer-built processes.
+
+Conclusion: clean. No ASan or UBSan diagnostic was produced across the unit
+test binary or any of the three live IPC processes (commander, supervisor,
+actuator) exercised through both end-to-end scenarios.

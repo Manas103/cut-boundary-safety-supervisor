@@ -1,0 +1,62 @@
+[==========] Running 24 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 8 tests from Boundary
+[ RUN      ] Boundary.InteriorPointIsSafe
+[       OK ] Boundary.InteriorPointIsSafe (0 ms)
+[ RUN      ] Boundary.PointOutsideEachFaceIsUnsafeAndNamesThatFace
+[       OK ] Boundary.PointOutsideEachFaceIsUnsafeAndNamesThatFace (0 ms)
+[ RUN      ] Boundary.FirstBreachedFaceInDeclarationOrderIsReported
+[       OK ] Boundary.FirstBreachedFaceInDeclarationOrderIsReported (0 ms)
+[ RUN      ] Boundary.ExactBoundaryValueIsClassifiedSafe
+[       OK ] Boundary.ExactBoundaryValueIsClassifiedSafe (0 ms)
+[ RUN      ] Boundary.NonAxisAlignedHalfSpaceIsEvaluatedCorrectly
+[       OK ] Boundary.NonAxisAlignedHalfSpaceIsEvaluatedCorrectly (0 ms)
+[ RUN      ] Boundary.LoadsShippedBoundaryConfigFile
+[       OK ] Boundary.LoadsShippedBoundaryConfigFile (0 ms)
+[ RUN      ] Boundary.MissingFileThrows
+[       OK ] Boundary.MissingFileThrows (0 ms)
+[ RUN      ] Boundary.MalformedFaceLineThrows
+[       OK ] Boundary.MalformedFaceLineThrows (0 ms)
+[----------] 8 tests from Boundary (0 ms total)
+
+[----------] 8 tests from SupervisorCore
+[ RUN      ] SupervisorCore.AcceptsSafePoseWithinLatencyBudget
+[       OK ] SupervisorCore.AcceptsSafePoseWithinLatencyBudget (0 ms)
+[ RUN      ] SupervisorCore.VetoesBoundaryViolationAndNamesReq003AndFace
+[       OK ] SupervisorCore.VetoesBoundaryViolationAndNamesReq003AndFace (0 ms)
+[ RUN      ] SupervisorCore.ClassifiesStalePoseAboveStaleThreshold
+[       OK ] SupervisorCore.ClassifiesStalePoseAboveStaleThreshold (0 ms)
+[ RUN      ] SupervisorCore.ClassifiesLatencySpikeBetweenLatencyAndStaleThresholds
+[       OK ] SupervisorCore.ClassifiesLatencySpikeBetweenLatencyAndStaleThresholds (0 ms)
+[ RUN      ] SupervisorCore.ThresholdBoundariesAreExclusiveNotInclusive
+[       OK ] SupervisorCore.ThresholdBoundariesAreExclusiveNotInclusive (0 ms)
+[ RUN      ] SupervisorCore.DropoutDetectedOncePollCrossesWindowAndNotBeforeReq011
+[       OK ] SupervisorCore.DropoutDetectedOncePollCrossesWindowAndNotBeforeReq011 (0 ms)
+[ RUN      ] SupervisorCore.DropoutHoldTimingIsMeasuredFromWindowCrossingNotFromNow
+[       OK ] SupervisorCore.DropoutHoldTimingIsMeasuredFromWindowCrossingNotFromNow (0 ms)
+[ RUN      ] SupervisorCore.NoBaselinePoseMeansDropoutNeverFires
+[       OK ] SupervisorCore.NoBaselinePoseMeansDropoutNeverFires (0 ms)
+[----------] 8 tests from SupervisorCore (0 ms total)
+
+[----------] 8 tests from Protocol
+[ RUN      ] Protocol.LineReaderReassemblesMessageSplitAcrossMultipleSendCalls
+[       OK ] Protocol.LineReaderReassemblesMessageSplitAcrossMultipleSendCalls (0 ms)
+[ RUN      ] Protocol.LineReaderSplitsTwoMessagesSentInOneWrite
+[       OK ] Protocol.LineReaderSplitsTwoMessagesSentInOneWrite (0 ms)
+[ RUN      ] Protocol.LineReaderReturnsFalseOnCleanEofWithNoPendingData
+[       OK ] Protocol.LineReaderReturnsFalseOnCleanEofWithNoPendingData (0 ms)
+[ RUN      ] Protocol.ParseCommanderLineParsesValidPoseAndShutdown
+[       OK ] Protocol.ParseCommanderLineParsesValidPoseAndShutdown (0 ms)
+[ RUN      ] Protocol.ParseCommanderLineRejectsMalformedInputWithoutThrowing
+[       OK ] Protocol.ParseCommanderLineRejectsMalformedInputWithoutThrowing (0 ms)
+[ RUN      ] Protocol.ParseActuatorLineDistinguishesForwardFromHold
+[       OK ] Protocol.ParseActuatorLineDistinguishesForwardFromHold (0 ms)
+[ RUN      ] Protocol.ListenSocketBindsToNonZeroOsAssignedPort
+[       OK ] Protocol.ListenSocketBindsToNonZeroOsAssignedPort (0 ms)
+[ RUN      ] Protocol.TwoListenSocketsGetDifferentOsAssignedPorts
+[       OK ] Protocol.TwoListenSocketsGetDifferentOsAssignedPorts (0 ms)
+[----------] 8 tests from Protocol (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 24 tests from 3 test suites ran. (0 ms total)
+[  PASSED  ] 24 tests.

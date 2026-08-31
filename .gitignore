@@ -1,0 +1,27 @@
+# CMake build directories (regenerate with the commands in README.md)
+build/
+build_asan/
+build_tsan/
+build_tsan_run/
+CMakeFiles/
+CMakeCache.txt
+
+# Regenerable run artifacts (scenario files, per-run logs, trace JSON) --
+# committed docs/*.txt and docs/traceability_matrix.md are the curated,
+# one-time-captured record; everything under build*/ that produced them is
+# not committed.
+*.log
+test_trace.json
+scenario_boundary.txt
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Editors / OS
+.vs/
+.vscode/
+*.swp
+.DS_Store
