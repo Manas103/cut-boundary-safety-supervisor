@@ -1,0 +1,16 @@
+# Obstacle-protection zone parameters (REQ-OBS-004). Plaintext, loaded by
+# ObstacleZoneModel::load_from_file, not hardcoded in source.
+#
+# LATENCY_S: fixed detection + processing latency (sensor-to-brake-command).
+# DECEL_MPS2: fixed braking deceleration assumption for an autonomous mower
+#   class outdoor machine (conservative, well under typical achievable
+#   deceleration on turf, since a real bench would calibrate this per
+#   machine and this repo does not have one).
+# MARGIN_M: fixed additional safety margin past the computed stopping
+#   distance.
+# WARNING_LEAD_S: extra lead time (converted to a distance via ground speed)
+#   added past the hazard boundary to form the warning-zone boundary.
+LATENCY_S 0.15
+DECEL_MPS2 1.5
+MARGIN_M 0.30
+WARNING_LEAD_S 1.0

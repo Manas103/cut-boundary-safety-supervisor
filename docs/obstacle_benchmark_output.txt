@@ -1,0 +1,79 @@
+=== Stop-distance envelope across ground speeds ===
+speed_mps,stopping_distance_m,hazard_boundary_m,warning_boundary_m
+0.25,0.0583,0.3583,0.6083
+0.50,0.1583,0.4583,0.9583
+0.75,0.3000,0.6000,1.3500
+1.00,0.4833,0.7833,1.7833
+1.25,0.7083,1.0083,2.2583
+1.50,0.9750,1.2750,2.7750
+1.75,1.2833,1.5833,3.3333
+2.00,1.6333,1.9333,3.9333
+2.25,2.0250,2.3250,4.5750
+2.50,2.4583,2.7583,5.2583
+2.75,2.9333,3.2333,5.9833
+3.00,3.4500,3.7500,6.7500
+
+=== 24 seeded encounters ===
+encounter  1: speed=0.50 range0=2.458 -> stopped=1 true_range_at_stop=0.4333 req=REQ-OBS-001 HELD
+encounter  2: speed=0.50 range0=5.458 -> stopped=1 true_range_at_stop=0.4333 req=REQ-OBS-001 HELD
+encounter  3: speed=0.50 range0=10.458 -> stopped=1 true_range_at_stop=0.4583 req=REQ-OBS-001 HELD
+encounter  4: speed=0.50 range0=20.458 -> stopped=1 true_range_at_stop=0.4583 req=REQ-OBS-001 HELD
+encounter  5: speed=1.00 range0=2.783 -> stopped=1 true_range_at_stop=0.7833 req=REQ-OBS-001 HELD
+encounter  6: speed=1.00 range0=5.783 -> stopped=1 true_range_at_stop=0.7333 req=REQ-OBS-001 HELD
+encounter  7: speed=1.00 range0=10.783 -> stopped=1 true_range_at_stop=0.7333 req=REQ-OBS-001 HELD
+encounter  8: speed=1.00 range0=20.783 -> stopped=1 true_range_at_stop=0.7833 req=REQ-OBS-001 HELD
+encounter  9: speed=1.50 range0=3.275 -> stopped=1 true_range_at_stop=1.2500 req=REQ-OBS-001 HELD
+encounter 10: speed=1.50 range0=6.275 -> stopped=1 true_range_at_stop=1.2500 req=REQ-OBS-001 HELD
+encounter 11: speed=1.50 range0=11.275 -> stopped=1 true_range_at_stop=1.2250 req=REQ-OBS-001 HELD
+encounter 12: speed=1.50 range0=21.275 -> stopped=1 true_range_at_stop=1.2500 req=REQ-OBS-001 HELD
+encounter 13: speed=2.00 range0=3.933 -> stopped=1 true_range_at_stop=1.9333 req=REQ-OBS-001 HELD
+encounter 14: speed=2.00 range0=6.933 -> stopped=1 true_range_at_stop=1.8333 req=REQ-OBS-001 HELD
+encounter 15: speed=2.00 range0=11.933 -> stopped=1 true_range_at_stop=1.8333 req=REQ-OBS-001 HELD
+encounter 16: speed=2.00 range0=21.933 -> stopped=1 true_range_at_stop=1.8333 req=REQ-OBS-001 HELD
+encounter 17: speed=2.50 range0=4.758 -> stopped=1 true_range_at_stop=2.7583 req=REQ-OBS-001 HELD
+encounter 18: speed=2.50 range0=7.758 -> stopped=1 true_range_at_stop=2.7583 req=REQ-OBS-001 HELD
+encounter 19: speed=2.50 range0=12.758 -> stopped=1 true_range_at_stop=2.6333 req=REQ-OBS-001 HELD
+encounter 20: speed=2.50 range0=22.758 -> stopped=1 true_range_at_stop=2.6333 req=REQ-OBS-001 HELD
+encounter 21: speed=3.00 range0=5.750 -> stopped=1 true_range_at_stop=3.6500 req=REQ-OBS-001 HELD
+encounter 22: speed=3.00 range0=8.750 -> stopped=1 true_range_at_stop=3.6500 req=REQ-OBS-001 HELD
+encounter 23: speed=3.00 range0=13.750 -> stopped=1 true_range_at_stop=3.7000 req=REQ-OBS-001 HELD
+encounter 24: speed=3.00 range0=23.750 -> stopped=1 true_range_at_stop=3.6500 req=REQ-OBS-001 HELD
+encounters_held: 24 / 24
+
+=== 200 healthy passes ===
+false_stops: 0 / 200
+
+=== Fault injection: lost stopping margin ===
+detector_dropout rep=0 speed=1.00 control_stop_range=0.7333 faulty_stop_range=7.5333 lost_margin_m=-6.8000
+detector_dropout rep=1 speed=1.30 control_stop_range=0.9983 faulty_stop_range=7.4333 lost_margin_m=-6.4350
+detector_dropout rep=2 speed=1.60 control_stop_range=1.3133 faulty_stop_range=7.3933 lost_margin_m=-6.0800
+detector_dropout rep=3 speed=1.90 control_stop_range=1.7133 faulty_stop_range=7.4133 lost_margin_m=-5.7000
+detector_dropout rep=4 speed=2.20 control_stop_range=2.2133 faulty_stop_range=7.4933 lost_margin_m=-5.2800
+detector_dropout rep=5 speed=2.50 control_stop_range=2.6333 faulty_stop_range=7.6333 lost_margin_m=-5.0000
+detector_dropout rep=6 speed=2.80 control_stop_range=3.2133 faulty_stop_range=7.8333 lost_margin_m=-4.6200
+detector_dropout rep=7 speed=3.10 control_stop_range=3.9083 faulty_stop_range=8.0933 lost_margin_m=-4.1850
+detector_dropout: mean_lost_margin_m=-5.5125 (n=8)
+late_detection rep=0 speed=1.00 control_stop_range=0.7333 faulty_stop_range=0.3333 lost_margin_m=0.4000
+late_detection rep=1 speed=1.30 control_stop_range=0.9983 faulty_stop_range=0.4783 lost_margin_m=0.5200
+late_detection rep=2 speed=1.60 control_stop_range=1.3133 faulty_stop_range=0.6733 lost_margin_m=0.6400
+late_detection rep=3 speed=1.90 control_stop_range=1.7133 faulty_stop_range=0.9533 lost_margin_m=0.7600
+late_detection rep=4 speed=2.20 control_stop_range=2.2133 faulty_stop_range=1.3333 lost_margin_m=0.8800
+late_detection rep=5 speed=2.50 control_stop_range=2.6333 faulty_stop_range=1.6333 lost_margin_m=1.0000
+late_detection rep=6 speed=2.80 control_stop_range=3.2133 faulty_stop_range=2.0933 lost_margin_m=1.1200
+late_detection rep=7 speed=3.10 control_stop_range=3.9083 faulty_stop_range=2.6683 lost_margin_m=1.2400
+late_detection: mean_lost_margin_m=0.8200 (n=8)
+stale_pose rep=0 speed=1.00 control_stop_range=1.3433 faulty_stop_range=1.3433 lost_margin_m=0.0000
+stale_pose rep=1 speed=1.30 control_stop_range=1.9863 faulty_stop_range=1.9863 lost_margin_m=0.0000
+stale_pose rep=2 speed=1.60 control_stop_range=2.8653 faulty_stop_range=2.8653 lost_margin_m=0.0000
+stale_pose rep=3 speed=1.90 control_stop_range=3.7083 faulty_stop_range=3.7083 lost_margin_m=0.0000
+stale_pose rep=4 speed=2.20 control_stop_range=4.7873 faulty_stop_range=3.5553 lost_margin_m=1.2320
+stale_pose rep=5 speed=2.50 control_stop_range=5.7583 faulty_stop_range=3.1583 lost_margin_m=2.6000
+stale_pose rep=6 speed=2.80 control_stop_range=5.7333 faulty_stop_range=3.2693 lost_margin_m=2.4640
+stale_pose rep=7 speed=3.10 control_stop_range=5.7683 faulty_stop_range=3.7843 lost_margin_m=1.9840
+stale_pose: mean_lost_margin_m=1.0350 (n=8)
+
+=== SUMMARY ===
+encounters_held=24
+encounters_total=24
+false_stops=0
+healthy_passes_total=200

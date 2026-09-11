@@ -1,0 +1,13 @@
+=== ASan+UBSan: cbs_tests (37 tests, includes 13 new obstacle tests) ===
+0
+[----------] Global test environment tear-down
+[==========] 37 tests from 5 test suites ran. (17 ms total)
+[  PASSED  ] 37 tests.
+
+=== ASan+UBSan: obstacle_bench (24 encounters, 200 healthy passes, fault matrix) ===
+0
+=== SUMMARY ===
+encounters_held=24
+encounters_total=24
+false_stops=0
+healthy_passes_total=200

@@ -1,0 +1,43 @@
+name: ci
+
+# Builds both profiles in this repo and runs their test/bench binaries on
+# every push. The cut-boundary profile's requirements-traceability generator
+# is deliberately NOT what this workflow gates on: it exits 1 by design for
+# REQ-017 (a disclosed, not-yet-covered requirement, see the README), so
+# gating CI on its exit code would either force a fake test just to make the
+# number 22/22 or make every push red for a known, intentional gap. This
+# workflow gates on the two things that should always be green: the
+# GoogleTest suite (cbs_tests) and the obstacle-protection fault matrix
+# (obstacle_bench, see "Obstacle-protection profile" in the README), which
+# is the fault matrix this repo's obstacle-protection claim refers to as
+# "gated in CI on every push".
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build -j"$(( $(nproc) / 2 > 0 ? $(nproc) / 2 : 1 ))"
+
+      - name: Run unit tests (cbs_tests)
+        working-directory: build
+        run: ./cbs_tests
+
+      - name: Run obstacle-protection fault matrix (obstacle_bench)
+        run: ./build/obstacle_bench
+
+      - name: Run cut-boundary end-to-end scenarios
+        run: |
+          python3 driver/run_boundary_violations.py --build-dir build \
+            --boundary config/boundary.txt --out-dir /tmp/e2e_boundary --docs-dir /tmp
+          python3 driver/run_fault_injection.py --build-dir build \
+            --boundary config/boundary.txt --out-dir /tmp/e2e_fault --docs-dir /tmp

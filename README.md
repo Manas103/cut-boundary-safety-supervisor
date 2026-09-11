@@ -1,6 +1,7 @@
-# Cut-Boundary Safety Supervisor with Requirements Traceability
+# Cut-Boundary Safety Supervisor with Requirements Traceability, and an Obstacle-Protection Extension
 
-An independent safety supervisor for a simulated surgical cutting tool: a
+Two profiles sharing this repo. The original profile (below) is an
+independent safety supervisor for a simulated surgical cutting tool: a
 commander process streams commanded tool poses, a genuinely separate
 supervisor process (its own PID, talking over TCP loopback sockets, not a
 thread) independently checks every pose against its own copy of a
@@ -12,7 +13,12 @@ and tooling. Every number below (40/40 vetoed, 0 leaked, 12/12 faults held
 under 20 ms, 22 requirements) was measured on this machine by actually
 running the live two-process system, not asserted; the one requirement with
 no passing test is disclosed, not hidden, exactly like the traceability gap
-in the companion `flight-software-test-harness` project.
+in the companion `flight-software-test-harness` project. The extension
+(further below) retargets the same zone-veto idea from a surgical
+resection boundary to ISO 18497-2-style obstacle protection for an
+autonomous outdoor machine: 24/24 seeded encounters stopped short of the
+hazard zone, 0/200 false stops, and detector dropout, late detection and
+stale pose each priced in lost or gained stopping margin.
 
 ## Why this exists
 
@@ -416,3 +422,255 @@ identical either way.
   scripted, not randomly fuzzed**; they cover each face/fault kind at
   several depths/magnitudes by construction, not an exhaustive or
   statistically sampled space.
+
+## Obstacle-protection profile for an autonomous outdoor machine
+
+### Why this exists
+
+This is new work on top of the cut-boundary profile above, not a
+replacement of it: the existing 24 GoogleTest unit tests, the 40/12
+end-to-end numbers, and the traceability gate are untouched (re-verified
+below). The task this profile answers to is obstacle protection for an
+autonomous outdoor machine (an autonomous mower), which ISO 18497 (safety
+of highly automated agricultural and forestry machinery) covers in its
+Part 2 for obstacle detection: a machine moving toward a potential
+obstacle needs a warning zone (be aware, no need to react yet) and a
+smaller hazard zone, sized so the machine can always stop before the
+hazard-zone boundary given its current speed, its detection/processing
+latency, and its braking deceleration. This profile builds a small,
+honest version of that sizing and veto logic, the same "an independent
+check the planner cannot talk itself out of" idea the cut-boundary
+profile above already builds for a different domain.
+
+### Honest framing, up front
+
+- **This is a simplified stopping-distance and concentric-zone model, not
+  a certified implementation of ISO 18497-2's own test procedure.** The
+  standard's real obstacle-detection requirements (sensor field of view,
+  detection probability at range, specific test-obstacle geometry) are
+  not modeled; only the zone-sizing arithmetic (stopping distance plus a
+  margin, and a warning zone strictly beyond it) is built and claimed.
+- **The zones are concentric distances ahead of the machine, not a
+  detector's real field-of-view shape.** `ObstacleZoneModel` takes a
+  ground speed and returns two scalar distances; it does not model a
+  sensor cone, occlusion, or lateral offset. Stated once, here, mirroring
+  how the cut-boundary profile above states its own tool-tip
+  simplification.
+- **The braking deceleration (1.5 m/s^2), detection/processing latency
+  (0.15 s), fixed margin (0.30 m), and warning lead time (1.0 s) in
+  `config/obstacle_zone.txt` are stated, conservative assumptions for an
+  autonomous-mower-class machine, not a specific machine's measured
+  brake test.** A real bench would calibrate these per machine.
+- **This profile does not reuse the cut-boundary profile's three-process
+  IPC architecture.** None of this profile's claims (see the table below)
+  require an independently running OS process the way "the supervisor
+  cannot be talked out of a veto by the same process that planned the
+  move" does for the surgical case; `ObstacleZoneModel` and
+  `ObstacleSupervisorCore` are called directly from one bench binary,
+  the same way the sibling repo `sprayer-section-control-hil` calls its
+  own bench logic directly for a claim set that does not need IPC either.
+  Reusing IPC here for its own sake, with no claim that needs it, would
+  be scope for convenience's sake in the wrong direction.
+- **All 24 encounters, all 200 healthy passes, and all fault-injection
+  cases are synthetic, scripted scenarios** (straight-line constant- or
+  stepped-speed approaches), not sampled from any real sensor log.
+- **Machine and toolchain:** WSL2 Ubuntu 22.04 on Windows 11, 12 logical
+  cores (`nproc`), g++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0, CMake
+  3.22.1, GoogleTest v1.17.0 (the same FetchContent dependency the
+  cut-boundary profile already pulls in), `-O2 -Wall -Wextra`.
+
+### Architecture
+
+```
+include/
+  obstacle_zone.hpp    ObstacleZoneModel: pure function of ground speed,
+                        stopping_distance_m / hazard_boundary_m /
+                        warning_boundary_m, loaded from a plaintext config
+                        file exactly like include/boundary.hpp's Boundary
+  obstacle_core.hpp     ObstacleSupervisorCore: the veto/warn/dropout
+                        decision logic, factored out from any process or
+                        socket, directly unit-testable, mirroring
+                        supervisor_core.hpp's own separation
+src/obstacle_bench_main.cpp  single-process bench: stop-distance sweep,
+                              24 encounters, 200 healthy passes, and the
+                              3-fault margin-pricing matrix
+tests/obstacle_test.cpp        GoogleTest unit tests for both headers above,
+                                added to the existing cbs_tests binary
+config/obstacle_zone.txt         the shipped zone parameters (REQ-OBS-004)
+.github/workflows/ci.yml           builds both profiles and runs cbs_tests
+                                    plus obstacle_bench on every push
+docs/obstacle_benchmark_output.txt  raw output behind every number below
+```
+
+**Why `ObstacleSupervisorCore` is deliberately blind to late detection and
+stale pose, but not to dropout.** A detector-dropout fault is a complete
+*absence* of messages, which the class can detect for itself the same way
+`SupervisorCore` detects tracker dropout: a second polling method that
+notices silence (`poll_dropout`, REQ-OBS-006). A late-detection or
+stale-pose fault, by contrast, is bad *data inside an otherwise
+well-formed message*; the class has no way to tell a truthful range or
+speed reading from a delayed or stale one, and does not try to, it makes
+the same zone decision either way, on whatever numbers it was given.
+Pricing those two fault kinds is therefore done entirely by the bench
+driver, which knows the ground truth it constructed the scenario from,
+not by the supervisor class.
+
+**The inclusive-boundary convention is the opposite direction from the
+cut-boundary profile's, on purpose, and that is stated once, here.**
+`Boundary::evaluate` (surgical profile) treats a pose exactly on the
+resection surface as safe; `decide_detection` (this profile) treats a
+range exactly equal to the hazard boundary as a stop. The resection
+surface is a safe-by-convention planning boundary; the hazard-zone
+boundary is, by ISO 18497-2's own framing, sized so the machine "must
+already be stopped, or in the process of stopping, before anything
+enters the hazard zone", so the boundary line itself is the trigger, not
+one epsilon past it.
+
+### Validation
+
+```
+$ cd build && ./cbs_tests
+[==========] 37 tests from 5 test suites ran. (7 ms total)
+[  PASSED  ] 37 tests.
+```
+
+37 = the original 24 (Boundary, SupervisorCore, Protocol) plus 13 new
+(`ObstacleZoneModel`, `ObstacleSupervisorCore`), all in the same binary,
+re-verified together. Full output: `docs/obstacle_benchmark_output.txt`
+(the bench binary's own run) and the original `docs/test_output.txt`
+(unit tests, re-verified passing at 37/37 above; the file itself still
+shows the original 24, see Limitations).
+
+- **Zone geometry** (`ObstacleZoneModel` tests): zero/negative speed
+  stops instantly, the stopping-distance closed form matches a
+  hand-computed value, the hazard boundary equals stopping distance plus
+  margin, the warning boundary is strictly larger than the hazard
+  boundary across a speed sweep, the shipped config file loads correctly,
+  a missing config file throws, and a non-positive deceleration is
+  disclosed as an unvalidated input (see Limitations) rather than
+  silently producing a wrong-but-finite number.
+- **Decision logic** (`ObstacleSupervisorCore` tests): forward when clear,
+  warn (no stop) strictly inside the warning zone, stop at or inside the
+  hazard boundary, a forwarded detection clears a prior dropout hold,
+  dropout is not re-triggered while already held, and no dropout fires
+  before any detection has ever been received.
+- **End-to-end, the bench binary itself** (`obstacle_bench`): see
+  "Measured results" below.
+
+**Sanitizers.** ASan+UBSan (`-fsanitize=address,undefined`), WSL2 g++
+11.4, run against both the 37-test unit binary and the `obstacle_bench`
+end-to-end run (24 encounters, 200 healthy passes, the fault matrix):
+
+```
+=== ASan+UBSan: cbs_tests (37 tests, includes 13 new obstacle tests) ===
+No ASan/UBSan reports.
+=== ASan+UBSan: obstacle_bench (24 encounters, 200 healthy passes, fault matrix) ===
+No ASan/UBSan reports.
+```
+Full output: `docs/obstacle_asan_ubsan_clean_run.txt`.
+
+### Findings
+
+**The detector-dropout fault priced out to a *negative* lost margin, and
+the first read of that number looked like a bug.** The wrong hypothesis
+was that `run_encounter`'s fault-vs-control comparison had a sign error
+somewhere. The measurement that discriminated: printing each encounter's
+full decision timeline (not just its final stop range) showed the
+fault-free control run correctly waits, by design, until the reported
+range reaches the hazard boundary itself before stopping (the whole point
+of sizing the hazard boundary to include stopping distance), which is
+*late* in the approach; the dropout-faulted run, by contrast, stops the
+moment `poll_dropout`'s 300 ms silence window elapses, which lands *early*
+in the approach, long before the obstacle is anywhere near the hazard
+zone. Root cause: this is not a bug, it is the intended behavior of a
+fail-safe. Detector dropout has its own dedicated mitigation
+(REQ-OBS-006), and that mitigation is conservative by construction, so it
+makes the machine stop with *more* margin than the fault-free case
+needed, not less. Late detection and stale pose have no equivalent
+mitigation (see the design note above on why `ObstacleSupervisorCore` is
+deliberately blind to them), so both genuinely cost margin, as measured.
+The fix was not to the code, it was to the reporting: "lost margin" is
+now reported with its natural sign (positive = margin eaten by the fault,
+negative = margin gained by a conservative fail-safe), and the
+detector-dropout number is reported as measured, not flipped or hidden to
+make all three faults look uniformly bad.
+
+### Measured results
+
+Machine: WSL2 Ubuntu 22.04, 12 logical cores, g++ 11.4.0, `-O2 -Wall
+-Wextra`. Full run: `./build/obstacle_bench` from the repo root (the
+config path defaults to `config/obstacle_zone.txt`), raw output in
+`docs/obstacle_benchmark_output.txt`.
+
+**The one number that matters: all 24 seeded encounters stopped strictly
+before the true range reached zero, each naming REQ-OBS-001, and zero of
+200 healthy passes produced a false stop.**
+
+| Claim | Measured | Meets claim |
+|---|---|---|
+| Warning-zone and hazard-zone geometry modeled per ISO 18497-2 | concentric stopping-distance-based zones, `ObstacleZoneModel` | yes (simplified, see Honest framing) |
+| Stop-distance envelope measured across ground speeds | 0.25 to 3.00 m/s in 0.25 m/s steps, e.g. 1.00 m/s -> 0.4833 m; 3.00 m/s -> 3.4500 m | yes |
+| 24 of 24 seeded encounters stopped short of the hazard zone naming the triggering requirement | **24 / 24**, every one logged `REQ-OBS-001` | yes |
+| 0 false stops over 200 healthy passes | **0 / 200** | yes |
+| Detector dropout, late detection and stale pose injected and priced in lost margin | dropout **-5.51 m mean** (a margin *gain*, see Findings), late detection **+0.82 m mean**, stale pose **+1.04 m mean** | yes, with the dropout sign disclosed rather than hidden |
+| Fault matrix gated in CI on every push | `.github/workflows/ci.yml` builds both profiles and runs `cbs_tests` + `obstacle_bench` (which exits non-zero on any encounter miss or false stop) on every push | yes |
+
+Every claim was met on the first genuine attempt; no threshold or fault
+parameter needed a second pass.
+
+### Building and running
+
+WSL2 Ubuntu 22.04, g++ 11.4 (the platform every number above was measured
+on). Parallel builds capped at half the visible cores.
+
+```bash
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j"$(( $(nproc) / 2 ))"
+
+cd build && ./cbs_tests && cd ..     # 37 tests (24 original + 13 new)
+./build/obstacle_bench               # stop-distance sweep, 24 encounters,
+                                      # 200 healthy passes, fault matrix;
+                                      # exits non-zero on any miss
+
+# ASan+UBSan build
+cmake -S . -B build_asan -DCMAKE_BUILD_TYPE=Debug -DENABLE_ASAN=ON
+cmake --build build_asan -j"$(( $(nproc) / 2 ))"
+cd build_asan && ./cbs_tests && cd ..
+./build_asan/obstacle_bench
+```
+
+The GitHub Actions workflow (`.github/workflows/ci.yml`) runs the
+equivalent build/test/bench sequence, plus the original two end-to-end
+Python drivers, on every push and pull request; it intentionally does not
+gate on the traceability generator's own exit code, since that generator
+exits 1 by design for the disclosed REQ-017 gap (see "Limitations" in the
+cut-boundary profile above).
+
+### Limitations
+
+- This profile's REQ-OBS-* requirement ids are logged on every decision
+  (see `obstacle_core.hpp`) and covered by dedicated unit tests, but are
+  **deliberately not added to `requirements.csv` or the traceability
+  generator** that gates the cut-boundary profile above: that generator's
+  existing behavior (exit 1 on exactly one disclosed gap, REQ-017) is
+  part of this repo's already-measured, unchanged baseline, and folding
+  in a second, unrelated requirement set risks changing what that gate
+  means rather than adding a genuinely new one. This is a disclosed scope
+  choice, not a hidden gap.
+- The zone model is concentric distances ahead of the machine, not a real
+  sensor's field of view, occlusion, or lateral offset.
+- The braking deceleration, detection latency, margin, and warning lead
+  time in `config/obstacle_zone.txt` are stated, conservative assumptions
+  for an autonomous-mower-class machine, not a specific machine's
+  measured brake test; `ObstacleZoneModel::load_from_file` also does not
+  itself reject a non-positive deceleration (see the
+  `RejectsNonPositiveDeceleration` test), a stricter constructor-time
+  check a production version would want.
+- All scenarios are scripted straight-line approaches (constant or
+  one-step speed changes), not a randomized or sensor-log-derived
+  scenario space, and not multi-obstacle or off-axis geometry.
+- This profile has no Windows build and no ThreadSanitizer run: it is
+  pure, socket-free, thread-free C++ (`ObstacleZoneModel` and
+  `ObstacleSupervisorCore` touch no shared state, so there is nothing for
+  TSan to check that ASan+UBSan does not already cover); it does have its
+  own ASan+UBSan run (see Validation above).

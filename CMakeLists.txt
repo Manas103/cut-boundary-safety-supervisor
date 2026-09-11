@@ -53,8 +53,14 @@ add_executable(cbs_tests
   tests/boundary_test.cpp
   tests/supervisor_core_test.cpp
   tests/protocol_test.cpp
+  tests/obstacle_test.cpp
 )
 target_link_libraries(cbs_tests PRIVATE gtest Threads::Threads)
+
+# Obstacle-protection profile: single-process bench (see README's
+# "Obstacle-protection profile" section for why this profile does not reuse
+# the three-process IPC architecture above).
+add_executable(obstacle_bench src/obstacle_bench_main.cpp)
 
 include(GoogleTest)
 if(NOT ENABLE_TSAN)
